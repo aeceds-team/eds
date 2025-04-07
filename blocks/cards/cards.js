@@ -4,38 +4,43 @@ export default function decorate(block) {
   const ul = document.createElement('ul');
   ul.className = 'row';
 
+  // loop through each row (div inside block)
   [...block.children].forEach((row) => {
+    const cols = [...row.children];
+    if (cols.length !== 2) return; // skip if not a 2-column row
+
     const li = document.createElement('li');
     li.className = 'col-sm-4';
 
     const wrapper = document.createElement('div');
     wrapper.className = 'views-field views-field-nothing';
 
-    const [imageCell, textCell] = [...row.children];
-
-    // Process image
-    const img = imageCell.querySelector('img');
+    // process image column
+    const img = cols[0].querySelector('img');
     if (img) {
-      const pic = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
-      wrapper.appendChild(pic);
+      const picture = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
+      wrapper.appendChild(picture);
     }
 
-    // Process text: assumes <p><strong>Title</strong></p><p>Desc</p> format
-    const paragraphs = textCell.querySelectorAll('p');
-    if (paragraphs.length >= 1) {
+    // process text column
+    const strong = cols[1].querySelector('strong');
+    const paragraphs = cols[1].querySelectorAll('p');
+
+    if (strong) {
       const titleDiv = document.createElement('div');
       titleDiv.className = 'service-title';
       const anchor = document.createElement('a');
-      anchor.textContent = paragraphs[0].textContent;
+      anchor.textContent = strong.textContent;
       titleDiv.appendChild(anchor);
       wrapper.appendChild(titleDiv);
     }
 
-    if (paragraphs.length >= 2) {
-      const descDiv = document.createElement('div');
-      descDiv.className = 'text';
-      descDiv.appendChild(paragraphs[1].cloneNode(true));
-      wrapper.appendChild(descDiv);
+    const descP = cols[1].querySelector('p:nth-of-type(2)');
+    if (descP) {
+      const textDiv = document.createElement('div');
+      textDiv.className = 'text';
+      textDiv.appendChild(descP.cloneNode(true));
+      wrapper.appendChild(textDiv);
     }
 
     li.appendChild(wrapper);
