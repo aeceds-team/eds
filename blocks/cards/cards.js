@@ -1,5 +1,4 @@
 import { createOptimizedPicture } from '../../scripts/aem.js';
-
 export default function decorate(block) {
 
   block.classList.add('services', 'equal', 'hover-anime', 'hardbg', 'border-grids');
@@ -14,14 +13,12 @@ export default function decorate(block) {
     while (row.firstElementChild) li.append(row.firstElementChild);
 
     const divs = [...li.children];
-    let imgDiv;
     let textDiv;
 
     // detect which div has image and which has text
     divs.forEach((div) => {
       if (div.querySelector('picture')) {
         div.className = 'views-field views-field-nothing';
-        imgDiv = div;
       } else {
         textDiv = div;
       }
