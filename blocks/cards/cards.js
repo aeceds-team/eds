@@ -27,7 +27,7 @@ export default function decorate(block) {
       const paragraphs = textDiv.querySelectorAll('p');
       let title = '';
       let description = '';
-      let link = { href: '', text: '' };
+      const link = { href: '', text: '' };
 
       paragraphs.forEach((p) => {
         const strong = p.querySelector('strong');
