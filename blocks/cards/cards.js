@@ -1,41 +1,47 @@
 import { createOptimizedPicture } from '../../scripts/aem.js';
 
 export default function decorate(block) {
-  if (!block) {
-    return;
-  }
-  
-  // Locate the <ul class="row"> within the block.
-  const ul = block.querySelector('ul.row');
-  if (!ul) {
-    return;
-  }
-  
-  // For each <li> within the ul, process the images.
-  [...ul.querySelectorAll('li')].forEach((li) => {
-    // Find any <img> that is not already inside a <picture>
-    li.querySelectorAll('img').forEach((img) => {
-      if (!img.closest('picture')) {
-        // Wrap the <img> with a <picture> element.
-        const picture = document.createElement('picture');
-        img.parentNode.insertBefore(picture, img);
-        picture.appendChild(img);
-      }
-    });
+  const ul = document.createElement('ul');
+  ul.className = 'row';
+
+  [...block.children].forEach((row) => {
+    const li = document.createElement('li');
+    li.className = 'col-sm-4';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'views-field views-field-nothing';
+
+    const [imageCell, textCell] = [...row.children];
+
+    // Process image
+    const img = imageCell.querySelector('img');
+    if (img) {
+      const pic = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
+      wrapper.appendChild(pic);
+    }
+
+    // Process text: assumes <p><strong>Title</strong></p><p>Desc</p> format
+    const paragraphs = textCell.querySelectorAll('p');
+    if (paragraphs.length >= 1) {
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'service-title';
+      const anchor = document.createElement('a');
+      anchor.textContent = paragraphs[0].textContent;
+      titleDiv.appendChild(anchor);
+      wrapper.appendChild(titleDiv);
+    }
+
+    if (paragraphs.length >= 2) {
+      const descDiv = document.createElement('div');
+      descDiv.className = 'text';
+      descDiv.appendChild(paragraphs[1].cloneNode(true));
+      wrapper.appendChild(descDiv);
+    }
+
+    li.appendChild(wrapper);
+    ul.appendChild(li);
   });
-  
-  // Optimize each <picture> element: replace it with the optimized version.
-  ul.querySelectorAll('picture > img').forEach((img) => {
-    const picture = img.closest('picture');
-    if (!picture) return;
-    const optimizedPic = createOptimizedPicture(
-      img.src,
-      img.alt,
-      false,
-      [
-        { width: '750' },
-      ]
-    );
-    picture.replaceWith(optimizedPic);
-  });
+
+  block.textContent = '';
+  block.appendChild(ul);
 }
