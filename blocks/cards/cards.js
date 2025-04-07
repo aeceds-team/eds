@@ -4,10 +4,9 @@ export default function decorate(block) {
   const ul = document.createElement('ul');
   ul.className = 'row';
 
-  // loop through each row (div inside block)
   [...block.children].forEach((row) => {
     const cols = [...row.children];
-    if (cols.length !== 2) return; // skip if not a 2-column row
+    if (cols.length !== 2) return;
 
     const li = document.createElement('li');
     li.className = 'col-sm-4';
@@ -15,17 +14,13 @@ export default function decorate(block) {
     const wrapper = document.createElement('div');
     wrapper.className = 'views-field views-field-nothing';
 
-    // process image column
     const img = cols[0].querySelector('img');
     if (img) {
       const picture = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
       wrapper.appendChild(picture);
     }
 
-    // process text column
     const strong = cols[1].querySelector('strong');
-    const paragraphs = cols[1].querySelectorAll('p');
-
     if (strong) {
       const titleDiv = document.createElement('div');
       titleDiv.className = 'service-title';
