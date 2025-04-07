@@ -6,42 +6,28 @@ export default function decorate(block) {
     return;
   }
   
-  // Locate the original UL with class "row" inside the block.
-  const originalUL = block.querySelector('ul.row');
-  if (!originalUL) {
-    console.warn('No UL with class "row" found.');
+  // Locate the <ul class="row"> within the block.
+  const ul = block.querySelector('ul.row');
+  if (!ul) {
+    console.warn('No <ul class="row"> found in block.');
     return;
   }
   
-  // Create a new UL element and preserve the original UL's class.
-  const newUL = document.createElement('ul');
-  newUL.className = originalUL.className;
-  
-  // Iterate over each LI in the original UL.
-  [...originalUL.children].forEach(originalLI => {
-    // Create a new LI element and copy over its class attribute.
-    const newLI = document.createElement('li');
-    newLI.className = originalLI.className;
-    
-    // Move all child elements from the original LI to the new LI.
-    while (originalLI.firstElementChild) {
-      newLI.append(originalLI.firstElementChild);
-    }
-    
-    // For each <img> in the new LI, wrap it in a <picture> if it isn't already.
-    newLI.querySelectorAll('img').forEach(img => {
+  // For each <li> within the ul, process the images.
+  [...ul.querySelectorAll('li')].forEach(li => {
+    // Find any <img> that is not already inside a <picture>
+    li.querySelectorAll('img').forEach(img => {
       if (!img.closest('picture')) {
+        // Wrap the <img> with a <picture> element.
         const picture = document.createElement('picture');
         img.parentNode.insertBefore(picture, img);
         picture.appendChild(img);
       }
     });
-    
-    newUL.append(newLI);
   });
   
-  // Optimize images: Replace each <picture> with an optimized version.
-  newUL.querySelectorAll('picture > img').forEach(img => {
+  // Optimize each <picture> element: replace it with the optimized version.
+  ul.querySelectorAll('picture > img').forEach(img => {
     const picture = img.closest('picture');
     if (!picture) return;
     const optimizedPic = createOptimizedPicture(
@@ -52,8 +38,4 @@ export default function decorate(block) {
     );
     picture.replaceWith(optimizedPic);
   });
-  
-  // Clear the original block and append the new UL.
-  block.textContent = '';
-  block.append(newUL);
 }
