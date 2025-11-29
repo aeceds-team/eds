@@ -7,15 +7,20 @@ const getYouTubeId = (url) => {
 
 const getYouTubeThumb = (id) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
-const normalizeDriveUrl = (url) => {
-  if (!url || !url.includes('drive.google.com')) return url;
+const getDriveInfo = (url) => {
+  if (!url || !url.includes('drive.google.com')) return null;
 
   const fileMatch = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
   const idMatch = fileMatch ? fileMatch[1] : (url.match(/[?&]id=([\w-]+)/) || [])[1];
 
-  if (!idMatch) return url;
+  if (!idMatch) return null;
 
-  return `https://drive.google.com/uc?export=download&id=${idMatch}`;
+  return {
+    id: idMatch,
+    downloadUrl: `https://drive.google.com/uc?export=download&id=${idMatch}`,
+    previewUrl: `https://drive.google.com/file/d/${idMatch}/preview`,
+    thumbnailUrl: `https://drive.google.com/thumbnail?id=${idMatch}`,
+  };
 };
 
 const fetchYouTubeTitle = async (url) => {
@@ -66,6 +71,18 @@ const buildYoutubeIframe = (item) => {
   return iframe;
 };
 
+const buildDrivePreview = (item) => {
+  const iframe = document.createElement('iframe');
+  const params = new URLSearchParams({ autopause: '0', modestbranding: '1' });
+  iframe.src = `${item.drivePreview}?${params.toString()}`;
+  iframe.title = item.title || 'Google Drive video player';
+  iframe.width = '100%';
+  iframe.height = '100%';
+  iframe.allow = 'autoplay; fullscreen';
+  iframe.allowFullscreen = true;
+  return iframe;
+};
+
 const parseRow = (row, index) => {
   const titleCell = row.children[0];
   const mediaCell = row.children[1];
@@ -85,17 +102,27 @@ const parseRow = (row, index) => {
     || (isTextUrl ? textUrl : '')
     || '';
 
-  const normalizedUrl = normalizeDriveUrl(mediaUrl);
-
   if (!mediaUrl) return null;
 
+  const driveInfo = getDriveInfo(mediaUrl);
+  const normalizedUrl = driveInfo ? driveInfo.downloadUrl : mediaUrl;
   const youtubeId = getYouTubeId(normalizedUrl);
-  const thumbnail = (img && (img.src || img.getAttribute('src'))) || (youtubeId ? getYouTubeThumb(youtubeId) : null);
+  const thumbnail = (img && (img.src || img.getAttribute('src')))
+    || (youtubeId ? getYouTubeThumb(youtubeId) : null)
+    || (driveInfo ? driveInfo.thumbnailUrl : null);
+
+  let type = 'upload';
+  if (youtubeId) {
+    type = 'youtube';
+  } else if (driveInfo) {
+    type = 'drive';
+  }
 
   return {
-    type: youtubeId ? 'youtube' : 'upload',
+    type,
     videoId: youtubeId,
     url: normalizedUrl,
+    drivePreview: driveInfo ? driveInfo.previewUrl : null,
     title: explicitTitle,
     fallbackTitle: explicitTitle || `Video ${index + 1}`,
     thumbnail,
@@ -205,6 +232,8 @@ export default function decorate(block) {
       let content;
       if (item.type === 'youtube' && item.videoId) {
         content = buildYoutubeIframe({ ...item, title: title.textContent });
+      } else if (item.type === 'drive' && item.drivePreview) {
+        content = buildDrivePreview({ ...item, title: title.textContent });
       } else {
         content = buildLocalVideo(item);
       }
