@@ -7,6 +7,17 @@ const getYouTubeId = (url) => {
 
 const getYouTubeThumb = (id) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
+const normalizeDriveUrl = (url) => {
+  if (!url || !url.includes('drive.google.com')) return url;
+
+  const fileMatch = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
+  const idMatch = fileMatch ? fileMatch[1] : (url.match(/[?&]id=([\w-]+)/) || [])[1];
+
+  if (!idMatch) return url;
+
+  return `https://drive.google.com/uc?export=download&id=${idMatch}`;
+};
+
 const fetchYouTubeTitle = async (url) => {
   try {
     const response = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
@@ -74,15 +85,17 @@ const parseRow = (row, index) => {
     || (isTextUrl ? textUrl : '')
     || '';
 
+  const normalizedUrl = normalizeDriveUrl(mediaUrl);
+
   if (!mediaUrl) return null;
 
-  const youtubeId = getYouTubeId(mediaUrl);
+  const youtubeId = getYouTubeId(normalizedUrl);
   const thumbnail = (img && (img.src || img.getAttribute('src'))) || (youtubeId ? getYouTubeThumb(youtubeId) : null);
 
   return {
     type: youtubeId ? 'youtube' : 'upload',
     videoId: youtubeId,
-    url: mediaUrl,
+    url: normalizedUrl,
     title: explicitTitle,
     fallbackTitle: explicitTitle || `Video ${index + 1}`,
     thumbnail,
