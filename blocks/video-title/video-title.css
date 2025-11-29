@@ -130,7 +130,8 @@
 .video-title-modal-dialog {
   position: relative;
   background: #000;
-  width: min(900px, 92vw);
+  width: min(1200px, 96vw);
+  max-height: calc(100vh - 48px);
   aspect-ratio: 16 / 9;
   border-radius: 12px;
   overflow: hidden;
@@ -138,6 +139,12 @@
   display: flex;
   align-items: stretch;
   justify-content: stretch;
+}
+
+.video-title-modal-player {
+  width: 100%;
+  height: 100%;
+  display: flex;
 }
 
 .video-title-modal-player iframe,
