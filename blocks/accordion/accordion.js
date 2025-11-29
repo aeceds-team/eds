@@ -48,12 +48,6 @@ export default function decorate(block) {
     };
 
     button.addEventListener('click', toggle);
-    button.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        toggle();
-      }
-    });
 
     item.append(heading, panel);
     block.append(item);
