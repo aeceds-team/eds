@@ -66,9 +66,12 @@ const parseRow = (row, index) => {
   const videoEl = mediaCell.querySelector('video, source');
   const picture = mediaCell.querySelector('picture');
   const img = picture ? picture.querySelector('img') : mediaCell.querySelector('img');
+  const textUrl = mediaCell.textContent && mediaCell.textContent.trim();
+  const isTextUrl = textUrl && /^https?:\/\//i.test(textUrl);
 
   const mediaUrl = (videoEl && (videoEl.src || videoEl.getAttribute('src')))
     || (link && link.href)
+    || (isTextUrl ? textUrl : '')
     || '';
 
   if (!mediaUrl) return null;
